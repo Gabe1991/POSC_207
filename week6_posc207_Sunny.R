@@ -90,7 +90,7 @@ my_dat2 <- data.frame(generation, edu); my_dat2
 my_dat2$edu <- as.integer(my_dat2$edu)
 
 
-my_dat2 <- dat_prep(my_dat)
+my_dat2 <- dat_prep(my_dat2)
 # Plot out the data #
 plot(my_dat2, pch=4, col="brown")
 text(2.5,22, "% BA or higher by generation") # you can add text to

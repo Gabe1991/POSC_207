@@ -43,9 +43,7 @@ dat_prep <- function(dat) {
 }
 
 ############################################
-# Creating Plot Method for Class: posc_207 #
-# This will let you then just call plot()  #
-# on a object of class "posc_207"          #
+# Creating Plot Method for Class: cmps_2016 #
 ############################################
 
 plot.cmps_2016 <- function(x, ...) {
@@ -88,8 +86,6 @@ plot(p_dat)
 
 ##################################
 # Make Adjustments               #
-# (note: cannot change defaults  #
-# like main= and xlab, ylab)     #
 ##################################
 
 plot(p_dat, pch=12, col="blue")
