@@ -1,6 +1,7 @@
 ---
 title: "posc_207_Sunny"
 output:
+  word_document: default
   pdf_document: default
   html_document: default
 ---
