@@ -1,0 +1,149 @@
+---
+title: "Mapping_posc207_sunny"
+author: "Sunny"
+date: "6/4/2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+Riverside County Project - Demographic Data for Riverside County
+
+Map 1: poverty rate
+
+```{r pov}
+#install all required packages
+library(gmapsdistance)
+library(choroplethr)
+library(choroplethrMaps)
+library(rvest)
+library(tidyverse)
+library(ggplot2)
+library(ggmap)
+library(readxl)
+library(mapview)
+library(leaflet)
+library(htmlwidgets)
+library(rgdal)
+#install.packages("gpclib")
+library(gpclib)
+library(maptools)
+#install.packages("maptools")
+
+#read in shapefile
+setwd ("~/Dropbox/ucr/2018spring/POSC207/shapefiles")
+
+demo_tract_16 <- readOGR("~/Dropbox/ucr/2018spring/POSC207/shapefiles",
+                         "demographic_census_2016")
+#turn geoid (census tract fipscode) into character
+demo_tract_16$GEOID <- as.character(demo_tract_16$GEOID)
+
+#extract only the shape of the shapefile
+if (!require(gpclib)) install.packages("gpclib", type="source")
+gpclibPermit()
+
+points <- fortify(demo_tract_16, region = 'GEOID')
+
+#getting riverside county google map
+riverside <- qmap("Thermal, CA", zoom=8)
+#extracting data from the shapefile 
+data <- as.data.frame(demo_tract_16)
+data <- data %>% select(GEOID, pct_pov_al)
+#rename the variable for better map labelling
+data <- plyr::rename(data, c("pct_pov_al" = "poverty rate"))
+#merge the data back into the shape file
+points2 <- merge(points, data, by.x='id', by.y='GEOID', all.x=TRUE)
+
+
+
+#version 1: one color heat map
+riverside + geom_polygon(aes(x=long,y=lat, group=group, fill=`poverty rate`, alpha=0.9), 
+                         data=points2, color='black', size = 0.1) +
+                         scale_fill_gradient(low='white', high='red')
+
+# version 2: two-color style
+riverside + geom_polygon(aes(x=long,y=lat, group=group, fill=`poverty rate` , alpha=0.9), 
+                         data=points2, color='black', size = 0.1) +
+                         scale_fill_distiller(palette='Spectral') + 
+                         scale_alpha(range=c(0.5,0.5), guide = 'none') #hide legend for transparency setting
+
+
+#web mapping
+pal_fun <- colorQuantile("YlOrRd", NULL, n = 5)
+
+p_popup <- paste0("<strong>Poverty Rate: </strong>", demo_tract_16$pct_pov_al)
+
+leaflet(demo_tract_16) %>%
+  addPolygons(
+    stroke = FALSE, # remove polygon borders
+    fillColor = ~pal_fun(pct_pov_al), # set fill color with function from above and value
+    fillOpacity = 0.6, smoothFactor = 0.5, # make it nicer
+    popup = p_popup) %>% # add popup
+    addProviderTiles("CartoDB.Positron") %>%
+    addLegend("bottomright",  # location
+            pal=pal_fun,    # palette function
+            values=~pct_pov_al,  # value to be passed to palette function
+            title = 'Overall Percent Poverty Rate') # legend title
+
+
+```
+
+
+Map 2: Trying to map another outcome (percent BA or higher)
+
+
+```{r edu}
+
+#read in shapefile
+demo_tract_16 <- readOGR("~/Dropbox/ucr/2018spring/POSC207/shapefiles",
+                         "demographic_census_2016")
+#turn geoid (census tract fipscode) into character
+demo_tract_16$GEOID <- as.character(demo_tract_16$GEOID)
+
+#extract only the shape of the shapefile
+if (!require(gpclib)) install.packages("gpclib", type="source")
+gpclibPermit()
+points <- fortify(demo_tract_16, region = 'GEOID')
+
+#getting riverside county google map
+riverside <- qmap("Thermal, CA", zoom=8)
+#extracting data from the shapefile 
+data <- as.data.frame(demo_tract_16)
+data <- data %>% select(GEOID, pct_ba_hi)
+#rename the variable for better map labelling
+data <- plyr::rename(data, c("pct_ba_hi" = "Percent BA Degree or Higher"))
+#merge the data back into the shape file
+points2 <- merge(points, data, by.x='id', by.y='GEOID', all.x=TRUE)
+
+#version 1: one color heat map
+riverside + geom_polygon(aes(x=long,y=lat, group=group, fill=`Percent BA Degree or Higher`, alpha=0.9), 
+                         data=points2, color='black', size = 0.1) +
+                         scale_fill_gradient(low='white', high='red')
+
+# version 2: two-color style
+riverside + geom_polygon(aes(x=long,y=lat, group=group, fill=`Percent BA Degree or Higher`, alpha=0.9), 
+                         data=points2, color='black', size = 0.1) +
+                         scale_fill_distiller(palette='Spectral') + 
+                         scale_alpha(range=c(0.6,0.6), guide = 'none') #hide legend for transparency setting
+
+pal_fun <- colorQuantile("YlOrRd", NULL, n = 5)
+
+p_popup <- paste0("<strong>Poverty Rate: </strong>", demo_tract_16$pct_ba_hi)
+
+leaflet(demo_tract_16) %>%
+  addPolygons(
+    stroke = FALSE, # remove polygon borders
+    fillColor = ~pal_fun(pct_ba_hi), # set fill color with function from above and value
+    fillOpacity = 0.6, smoothFactor = 0.5, # make it nicer
+    popup = p_popup) %>% # add popup
+    addProviderTiles("CartoDB.Positron") %>%
+    addLegend("bottomright",  # location
+            pal=pal_fun,    # palette function
+            values=~pct_ba_hi,  # value to be passed to palette function
+            title = 'Share of total population that has BA degree or higher') # legend title
+
+
+```
+
+
+
